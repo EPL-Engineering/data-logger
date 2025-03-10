@@ -18,6 +18,17 @@ end
 % Header information
 headerSize = 0;
 
+% Look for indicator
+indicator = fread(fp, [1 10], '*char');
+if strcmp(indicator, 'DataLogger')
+   headerSize = headerSize + 10;
+   format = fread(fp, 1, 'int32');
+   headerSize = headerSize + 4;
+else
+   format = 1;
+   frewind(fp);
+end
+
 % Number of channels
 nch = fread(fp, 1, 'int32');
 headerSize = headerSize + 4;
@@ -44,19 +55,27 @@ headerSize = headerSize + 8;
 pts_per_read = fread(fp, 1, 'int32');
 headerSize = headerSize + 4;
 
+if format > 1
+   t0 = fread(fp, 1, 'double');
+   headerSize = headerSize + 8;
+else
+   t0 = NaN;
+end
+
 fclose(fp);
 
 s = dir(fn);
 nrecords = (s.bytes - headerSize) / (nch * pts_per_read * 8);
 
-
 H.fn = fn;
+H.format = format;
 H.pts_per_read = pts_per_read;
 H.nch = nch;
 H.names = names;
 H.Fs = Fs;
 H.headerSize = headerSize;
 H.nrecords = nrecords;
+H.t0 = t0;
 
 %--------------------------------------------------------------------------
 % END OF OPEN_DATA_LOG.M
