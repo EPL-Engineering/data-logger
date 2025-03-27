@@ -1,18 +1,29 @@
 ; -- Elektra Installer.iss --
 
-; SEE THE DOCUMENTATION FOR DETAILS ON CREATING .ISS SCRIPT FILES!
-;#define semver "0.1.0"
-#define verStr_ StringChange(semver, '.', '-')
+; Set the following three variables
+#define exeName "DataLogger.exe" ; i.e.: the "Target filename" set in the LabVIEW project explorer
+#define appName "Data Logger"    ; this is arbitrary. It controls the install folder location and the desktop shortcut name
+#define iconName "movie.ico"
+
+; In normal use, should not need to edit below here
+
+; Extracts the semantic version from the executable. Only retains the patch number if it is greater than zero.
+#define SemanticVersion() \
+   GetVersionComponents("..\Build\" + exeName, Local[0], Local[1], Local[2], Local[3]), \
+   Str(Local[0]) + "." + Str(Local[1]) + ((Local[2]>0) ? "." + Str(Local[2]) : "")
+    
+; The installer contains the semantic version number, but replaces the dots with dashes so it doesn't look like a file extension.
+#define installerName StringChange(appName, ' ', '_') + "_" + StringChange(SemanticVersion(), '.', '-')
 
 
 [Setup]
-AppName=Data Logger
-AppVerName=Data Logger {#semver}
-DefaultDirName={commonpf}\EPL\Data Logger\v{code:GetVersionFolder|{#semver}}
+AppName={#appName}
+AppVerName={#appName} V{#SemanticVersion()}
+DefaultDirName={commonpf}\EPL\{#appName}\V{#SemanticVersion()}
 OutputDir=.\Output
 DefaultGroupName=EPL
 AllowNoIcons=yes
-OutputBaseFilename=Data_Logger_{#verStr_}
+OutputBaseFilename={#installerName}
 UsePreviousAppDir=no
 UsePreviousGroup=no
 DisableProgramGroupPage=yes
@@ -23,33 +34,5 @@ Source: "..\Build\*.*"; DestDir: "{app}"; Flags: replacesameversion
 Source: "D:\Development\epl-vi-lib\Utility VIs\Error Handling VIs\epl-vi-lib-errors.ini"; DestDir: "{app}"; Flags: replacesameversion
 
 [Icons]
-Name: "{commondesktop}\Data Logger"; Filename: "{app}\Data-Logger.exe"; IconFilename: "{app}\movie.ico"; IconIndex: 0;
-
-
-[Code]
-
-function IsTestVersion(Param : String): Boolean;
-begin
-    Result := False
-    if (Pos('alpha', Param) > 0) or (Pos('beta', Param) > 0) then begin
-      Result := True
-    end;
-end;
-
-function GetVersionFolder(Param: String): String;
-var
-  idx : Integer;
-
-begin
-    Result := Param
-    idx := Pos('alpha', Param)
-    if idx > 0 then begin
-      Result := Copy(Param, 1, idx + 4)
-    end;
-    idx := Pos('beta', Param)
-    if idx > 0 then begin
-      Result := Copy(Param, 1, idx + 3)
-    end;
-end;
-
+Name: "{commondesktop}\{#appName}"; Filename: "{app}\{#exeName}"; IconFilename: "{app}\{#iconName}"; IconIndex: 0;
 
