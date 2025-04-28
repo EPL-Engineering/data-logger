@@ -54,6 +54,7 @@ headerSize = headerSize + 8;
 % "Frame size"
 pts_per_read = fread(fp, 1, 'int32');
 headerSize = headerSize + 4;
+pts_per_read = 97656;
 
 if format > 1
    t0 = fread(fp, 1, 'double');
